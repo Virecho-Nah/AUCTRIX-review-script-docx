@@ -1,4 +1,4 @@
 interface:
-  display_name: "AUCTRIX Word 剧本审稿批注"
-  short_description: "全文诊断剧本并输出保留原文格式的原位专业Word批注版"
-  default_prompt: "使用 $auctrix-review-script-docx 全文审阅这份剧本 Word，在相关原文处加入主编式可执行批注，并返回保留正文、格式、已有批注与修订痕迹的新 DOCX。"
+  display_name: "AUCTRIX Word 剧本审稿批注 v2"
+  short_description: "按通用与商业短剧双模式全文诊断，并输出保留格式的原位Word批注版"
+  default_prompt: "使用 $auctrix-review-script-docx 判断这份剧本适用通用模式还是商业短剧模式，全文审阅后在相关原文处加入主编式可执行批注，并返回保留正文、格式、已有批注与修订痕迹的新 DOCX。"
