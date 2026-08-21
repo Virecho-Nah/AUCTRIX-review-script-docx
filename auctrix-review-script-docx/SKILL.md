@@ -1,6 +1,6 @@
 ---
 name: auctrix-review-script-docx
-description: Review screenplay, vertical short-drama, episodic script, AI comic-drama, or scene-outline Word files and return a new `.docx` with professional Word comments anchored at the relevant original paragraphs. Use when the user uploads a script in Word and asks to 审稿, 批注, 找问题, 主编式审阅, 剧本诊断, or produce a 带批注的 Word. Preserve the script text, formatting, existing comments, and tracked changes; diagnose structure, episode engine, causality, character motivation and agency, emotional escalation, hooks, dialogue, visual execution, continuity, and production feasibility; insert concise actionable comments; render and structurally verify the commented Word before delivery.
+description: Review screenplay, vertical short-drama, episodic script, AI comic-drama, or scene-outline Word files and return a new `.docx` with professional Word comments anchored at the relevant original paragraphs. Use when the user asks to 审稿, 批注, 找问题, 主编式审阅, 剧本诊断, or produce a 带批注的 Word. Preserve text, formatting, existing comments, and tracked changes; apply general screenplay criteria, plus the stricter hook, emotion, agency, information-gap, dialogue, and visual-staging rules when the project is a commercial short drama or AI comic drama; do not force those format-specific thresholds onto films or long-form scripts.
 ---
 
 # AUCTRIX Word 剧本审稿与原位批注
@@ -9,7 +9,7 @@ description: Review screenplay, vertical short-drama, episodic script, AI comic-
 
 - 创作者：**VIRÉCHO**
 - 系列：**AUCTRIX**
-- 版本：**1.0.0**
+- 版本：**2.0.0**
 
 将本 Skill 作为独立的 Word 剧本全文诊断与原位批注工具使用，也可作为 VIRÉCHO 未来剧本 Agent AUCTRIX 的基础能力模块调用。在 AUCTRIX 工作流中，承担全文诊断、问题聚类、编辑优先级判断、原位批注和 Word 保真交付。
 
@@ -25,6 +25,15 @@ description: Review screenplay, vertical short-drama, episodic script, AI comic-
 
 本技能负责“审什么、批什么、批注怎么写”；同时使用可处理 Word/OOXML 的 `documents` 技能执行文档操作和渲染验证。
 
+## 审稿模式
+
+先判断项目类型，再选择判据，避免把一种平台节奏当成全部剧本的普遍真理。
+
+- **通用剧本模式**：电影、长剧、非强商业钩子导向的场景稿或类型不明稿件。读取 [review-rubric.md](references/review-rubric.md)。
+- **商业短剧／AI 漫剧模式**：竖屏短剧、强分集付费或追更结构、短时长 AI 漫剧。先读 [review-rubric.md](references/review-rubric.md)，再读 [commercial-short-drama-rubric.md](references/commercial-short-drama-rubric.md)。两者冲突时，以更具体的商业短剧规则为准。
+
+若用户未明说类型，可根据集数、单集篇幅、卡点标记和成片形式判断；只有在判断会实质改变审稿结论且文本也无法识别时才询问。最终批注只写文本问题，不向作者解释内部模式选择。
+
 ## 工作流程
 
 严格按以下顺序执行：
@@ -33,12 +42,13 @@ description: Review screenplay, vertical short-drama, episodic script, AI comic-
 2. 阅读全文，包括正文、表格中的剧本内容、已有批注和已有修订。
 3. 渲染原文件并检查全部页面，理解版式、场次层级和分页；若渲染工具不可用，记录限制但继续做结构审查。
 4. 使用 `scripts/extract_docx.py` 导出稳定段落编号和可见文本。
-5. 先完成全局诊断，再选择批注锚点；不要边读第一场边写满局部意见。
-6. 按 `references/review-plan-format.md` 创建审稿计划 JSON。
-7. 使用 `scripts/apply_review_comments.py` 将计划写成真实 Word 批注；只添加批注结构，不改正文文字与格式。
-8. 使用 `scripts/audit_review_comments.py` 对新批注逐条做结构审计。
-9. 重新渲染批注版，逐页检查正文、分页、表格、字体、页眉页脚和已有修订是否仍正常。
-10. 只在结构审计通过且视觉复核完成后交付最终 `.docx`。
+5. 判断审稿模式，读取该模式需要的判据；不要把商业短剧的硬节拍阈值套到电影或长剧。
+6. 先完成全文诊断，再选择批注锚点；不要边读第一场边写满局部意见。
+7. 按 `references/review-plan-format.md` 创建审稿计划 JSON。
+8. 使用 `scripts/apply_review_comments.py` 将计划写成真实 Word 批注；只添加批注结构，不改正文文字与格式。
+9. 使用 `scripts/audit_review_comments.py` 对新批注逐条做结构审计。
+10. 重新渲染批注版，逐页检查正文、分页、表格、字体、页眉页脚和已有修订是否仍正常。
+11. 只在结构审计通过且视觉复核完成后交付最终 `.docx`。
 
 ## 调用脚本
 
@@ -54,7 +64,7 @@ description: Review screenplay, vertical short-drama, episodic script, AI comic-
 
 ## 审稿顺序
 
-先看全局，再看单集，再看场次，最后看字句：
+通用剧本先看全局，再看单元／场次，最后看字句：
 
 1. **故事承诺与因果脊柱**：开篇承诺了什么；事件是否互相导致；跨集是否只是“然后又发生”。
 2. **单集发动机与卡点**：每集观众在追问什么；压力如何升级；卡点前是否蓄力；结尾是否既回答又制造更大问题。
@@ -65,7 +75,15 @@ description: Review screenplay, vertical short-drama, episodic script, AI comic-
 7. **视觉与制作**：奇观是否有尺度参照和环境后果；夜景是否有明确光源；AI 漫剧描述是否让模型能理解对象、方向、材质和相对大小。
 8. **连续性与文档接口**：人物知情、身份、时序、空间、伤势、道具、日夜、场号、称谓、大纲与正文是否一致。
 
-详细判据读取 [review-rubric.md](references/review-rubric.md)。
+商业短剧／AI 漫剧改用以下优先顺序：
+
+1. **开篇切入与情绪发动**：精彩内容是否前置；背景和伏笔是否挤占开场；前 300–500 个中文字符内是否出现能改变处境、关系或期待的高光切入点。
+2. **主角目标与主动行动线**：第一集能否识别核心设定、主角目标和主要行动线；后续事件是否由主角为目标主动进入并推动。
+3. **单集钩子与阶段钩子**：每集结尾是否留有追更问题；决定卡点的关键设定是否提前出现；项目若设置 7–10 集阶段卡点，相关大钩子是否从第一集开始铺垫。
+4. **代入感与情绪回合**：事件是否服务情绪；一个大事件是否通过压制、反应、升级、亮底牌和兑现形成错落回合。
+5. **因果、人物、信息、台词、动作与视觉连续性**：再按通用判据检查其余层级。
+
+详细判据按“审稿模式”读取对应 reference。
 
 ## 选择值得写进 Word 的意见
 
@@ -74,8 +92,8 @@ description: Review screenplay, vertical short-drama, episodic script, AI comic-
 优先级：
 
 - **P0 硬伤**：因果矛盾、前后冲突、人物不可能知道、空间或物理顺序错误、版本接口错位。
-- **P1 核心问题**：结构、单集发动、卡点、主角能动性、重大动机、跨集情绪和关系弧。
-- **P2 明显削弱**：场内节奏、重复效果、说明书台词、冲突执行、画面不可落地。
+- **P1 核心问题**：结构、开篇切入、单集发动、阶段卡点、主角目标与能动性、重大动机、核心情绪发动、跨集关系弧。
+- **P2 明显削弱**：场内节奏、爽点平重复、无效狠话、说明书台词、冲突执行、动作调度断裂、画面不可落地。
 - **P3 精修**：措辞、格式、轻微冗余。只在它重复出现或明显影响专业度时批。
 
 同一根因反复出现时，不要在十处重复同一句。把主批注放在最早能看见问题全貌的位置，说明影响范围；仅在另一个位置需要不同修法时再追加批注。
@@ -101,7 +119,7 @@ description: Review screenplay, vertical short-drama, episodic script, AI comic-
 
 例如：
 
-> 【P1｜卡点铺垫】本集前段主要在处理善后，与结尾“灯塔崩塌”没有持续关联，因此卡点更像突然加出的奇观。\n建议：把“灯塔不能受损”的禁忌和维修痕迹提前两次露出，但不要解释塔下真相，让结尾成为前面疑问的答案。
+> 【P1｜卡点铺垫】本集前段主要在处理日常事务，与结尾“关键证据被公开”没有持续关联，因此卡点更像突然加入的新事件。\n建议：把证据的重要性和异常访问痕迹提前两次露出，但不要解释泄露者身份，让结尾成为前面疑问的答案。
 
 不要写：
 
@@ -116,12 +134,14 @@ description: Review screenplay, vertical short-drama, episodic script, AI comic-
 
 - 区分症状与病因。“水”不等于缺事件；常见根因是没有持续阻力、人物不必选择、关系不移动、信息只能靠对白搬运。
 - 不用增加吵架解决冲突弱。优先检查损失、现实威胁、权力不对等、主动行为、信息差和选择代价。
-- 不用配角降智证明主角聪明。反对者必须拥有当下合理性。
-- 不重复证明同一能力。后一集应升级能力用途或代价。
+- 主角可以让对手因信息差显得可笑，但对手必须基于其已知信息做出当下合理的选择；不靠真正降智托举主角。
+- 同一种能力、打脸或爽点可以重复，但必须在对手身份、反击程度、代价、信息或关系后果上升级；平移复刻才是重复。
 - 不为了“说清楚”提前解释后续悬念。只补当前选择所需的信息。
 - 不把夜景制作问题简化成“改白天”；先检查光源、轮廓、色相、曝光和视觉递进。
 - 不用形容词解决“画面不够大”；检查环境破坏、空间变化、远近景和尺寸对比。
 - 不把通用编剧理论压过项目类型。竖屏短剧、2 分钟 AI 漫剧、长剧和电影使用不同节拍尺度。
+- 商业短剧不以事件数量代替情绪。事件是制造代入、压制、期待、反击和兑现的载体；先检查情绪回合是否升级，再决定是否增加新事件。
+- 被动卷入可以是触发，但主角必须尽快形成目标并主动采取行动；不能长期由巧合和外部事故推着走。
 - 既指出问题，也识别必须保护的有效设计；保护意见只在它能防止误改时写入批注。
 
 ## 生成审稿计划

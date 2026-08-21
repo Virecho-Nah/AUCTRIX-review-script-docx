@@ -1,6 +1,6 @@
 # AUCTRIX Review Script DOCX
 
-版本：1.0.0
+版本：2.0.0
 
 创作者：**VIRÉCHO**
 
@@ -16,6 +16,8 @@ AUCTRIX 系列剧本审稿 Skill。用于审阅影视剧本、竖屏短剧、分
 
 ## 主要能力
 
+- 区分通用剧本与商业短剧／AI 漫剧模式，不把平台硬节拍套到所有项目
+- 在商业短剧模式中优先检查开篇高光、主角行动线、单集／阶段钩子、情绪回合与信息差期待
 - 完整阅读 Word 剧本后再判断，不边读开头边密集下结论
 - 从全局结构、分集发动、人物、情绪、钩子、对白、视觉与制作等维度诊断
 - 使用 P0—P3 优先级聚类问题，减少同一根因的重复批注
@@ -76,6 +78,7 @@ AUCTRIX-review-script-docx/
     ├── agents/
     │   └── openai.yaml
     ├── references/
+    │   ├── commercial-short-drama-rubric.md
     │   ├── review-plan-format.md
     │   └── review-rubric.md
     └── scripts/

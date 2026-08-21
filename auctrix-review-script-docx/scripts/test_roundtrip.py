@@ -27,7 +27,7 @@ DOCUMENT = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
   <w:body>
     <w:p><w:r><w:t>第1集</w:t></w:r></w:p>
-    <w:p><w:r><w:t>林澈没有任何犹豫，立刻把唯一的证据交给刚刚背叛她的人。</w:t></w:r></w:p>
+    <w:p><w:r><w:t>主角没有任何犹豫，立刻把唯一的证据交给刚刚背叛她的人。</w:t></w:r></w:p>
     <w:sectPr/>
   </w:body>
 </w:document>"""
@@ -54,6 +54,7 @@ def main() -> None:
 
         run([sys.executable, str(scripts / "extract_docx.py"), str(source), "--out", str(mapping)])
         mapped = json.loads(mapping.read_text(encoding="utf-8"))
+        episode_title = next(item for item in mapped["paragraphs"] if item["text"] == "第1集")
         target = next(item for item in mapped["paragraphs"] if "唯一的证据" in item["text"])
         plan.write_text(
             json.dumps(
@@ -61,6 +62,14 @@ def main() -> None:
                     "reviewer": "AUCTRIX 剧本审稿",
                     "source_sha256": mapped["source_sha256"],
                     "comments": [
+                        {
+                            "paragraph_id": episode_title["paragraph_id"],
+                            "anchor_quote": "第1集",
+                            "priority": "P1",
+                            "category": "开篇钩子",
+                            "diagnosis": "本集标题后直接进入结果性动作，尚未建立主角此刻最想要什么，开篇高光缺少可追问的目标支点。",
+                            "suggestion": "在动作发生前补一个极短的目标或限制，让交出证据成为主动选择而非孤立事件。",
+                        },
                         {
                             "paragraph_id": target["paragraph_id"],
                             "anchor_quote": "把唯一的证据交给刚刚背叛她的人",
@@ -92,7 +101,7 @@ def main() -> None:
         )
         run([sys.executable, str(scripts / "audit_review_comments.py"), str(output), "--manifest", str(manifest)])
         result = json.loads(manifest.read_text(encoding="utf-8"))
-        if result["new_comment_count"] != 1 or result["source_sha256"] != result["output_sha256"]:
+        if result["new_comment_count"] != 2 or result["source_sha256"] != result["output_sha256"]:
             raise SystemExit("Round-trip assertions failed")
         print("[OK] AUCTRIX review DOCX round trip passed")
 
